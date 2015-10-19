@@ -4,10 +4,12 @@ package uuid
 
 // #cgo pkg-config: uuid
 // #cgo LDFLAGS: -luuid
+// #include <string.h>
 // #include <uuid/uuid.h>
 import "C"
 
 import (
+	"crypto/rand"
 	"encoding/hex"
 	"unsafe"
 )
@@ -57,13 +59,28 @@ func (uu *Uuid) Generate() {
 	C.uuid_generate(&uu.uuid[0])
 }
 
-// GenerateRandom forces the use of the all-random UUID format, iven if a
+// GenerateRandom forces the use of the all-random UUID format, even if a
 // high-quality generator (i.e. /dev/urandom) is not available, in which
 // case a pseudo-random generator will be substituted. Note that the use
 // of a pseudo-random generator may compromise the uniqueness of UUIDs
 // generated in this fasion.
-func (uu *Uuid) GenerateRandom() {
-	C.uuid_generate_random(&uu.uuid[0])
+func (uu *Uuid) GenerateRandom() error {
+	//C.uuid_generate_random(&uu.uuid[0])
+	uuid := make([]byte, 16)
+	n, err := rand.Read(uuid)
+
+	if n != len(uuid) || err != nil {
+		return err
+	}
+
+	uuid[8] = uuid[8]&^0xc0 | 0x80
+	uuid[6] = uuid[6]&^0xf0 | 0x40
+
+	for i, u := range uuid {
+		uu.uuid[i] = C.uchar(u)
+	}
+
+	return nil
 }
 
 // GenerateTime furces the use of the alternative algorithm which uses the
@@ -79,9 +96,9 @@ func (uu *Uuid) GenerateTimeSafe() {
 	C.uuid_generate_time_safe(&uu.uuid[0])
 }
 
-// ToString converts the suplied Uuid uu from the binary representation into
+// String converts the suplied Uuid uu from the binary representation into
 // a 32-byte string value of the form '1b4e28ba2fa111d2883f0016d3cca427'.
-func (uu Uuid) ToString() string {
+func (uu Uuid) String() string {
 	if uu.IsNil() {
 		return ""
 	}
