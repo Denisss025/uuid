@@ -42,19 +42,19 @@ func TestLibUuid(t *testing.T) {
 		t.Error("Copy does not work")
 	}
 
-	uuidStr := uuid.ToString()
+	uuidStr := uuid.String()
 	guid := uuid.ToGuid()
-	if uuidStr != uuid2.ToString() {
+	if uuidStr != uuid2.String() {
 		t.Error("uuid and uuid2 should generate the same string")
 	}
 
-	if uuidStr != uuid.ToString() {
+	if uuidStr != uuid.String() {
 		t.Error("uuid generate the same string unless new value is " +
 			"generated")
 	}
 
 	if len(uuidStr) != 32 {
-		t.Error("uuid.ToString() should generate a string with " +
+		t.Error("uuid.String() should generate a string with " +
 			"the size of 32 characters")
 	}
 
@@ -64,16 +64,22 @@ func TestLibUuid(t *testing.T) {
 }
 
 func BenchmarkGenerate(b *testing.B) {
+	b.StopTimer()
 	var uuid Uuid
 	for n := 0; n < b.N; n++ {
+		b.StartTimer()
 		uuid.Generate()
+		b.StopTimer()
 	}
 }
 
 func BenchmarkGenRandom(b *testing.B) {
+	b.StopTimer()
 	var uuid Uuid
 	for n := 0; n < b.N; n++ {
+		b.StartTimer()
 		uuid.GenerateRandom()
+		b.StopTimer()
 	}
 }
 
@@ -103,7 +109,7 @@ func BenchmarkToString(b *testing.B) {
 	uuid.GenerateRandom()
 
 	for n := 0; n < b.N; n++ {
-		uuid.ToString()
+		uuid.String()
 	}
 }
 
